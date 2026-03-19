@@ -25,17 +25,7 @@ export class PostsRepository implements IPostsRepository {
   }
 
   async update(post: IPost): Promise<IPost> {
-    const postToUpdate = await this.repository.findOne({ where: { id: post.id } })
-    if (!postToUpdate) {
-      throw new ResourceNotFoundError()
-    }
-    postToUpdate.title = post.title
-    postToUpdate.content = post.content
-    postToUpdate.author = post.author
-    postToUpdate.updatedAt = new Date()
-    postToUpdate.isPublished = post.isPublished ?? false
-
-    return this.repository.save(postToUpdate)
+    return this.repository.save(post)
   }
 
   async delete(id: number): Promise<void> {
