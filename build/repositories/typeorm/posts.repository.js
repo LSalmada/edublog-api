@@ -102,6 +102,13 @@ appDataSource.initialize().then(() => {
   console.error("Error connecting to database with typeorn", error);
 });
 
+// src/use-cases/errors/resource-not-found-error.ts
+var ResourceNotFoundError = class extends Error {
+  constructor() {
+    super("Resource not found");
+  }
+};
+
 // src/repositories/typeorm/posts.repository.ts
 var PostsRepository = class {
   constructor() {
@@ -110,14 +117,23 @@ var PostsRepository = class {
   async create(post) {
     return this.repository.save(post);
   }
-  async findAll(page, limit) {
+  async listAllPosts(page, limit) {
     return this.repository.find({ skip: (page - 1) * limit, take: limit });
   }
   async findById(id) {
     return this.repository.findOne({ where: { id } });
   }
   async update(post) {
-    return this.repository.save(post);
+    const postToUpdate = await this.repository.findOne({ where: { id: post.id } });
+    if (!postToUpdate) {
+      throw new ResourceNotFoundError();
+    }
+    postToUpdate.title = post.title;
+    postToUpdate.content = post.content;
+    postToUpdate.author = post.author;
+    postToUpdate.updatedAt = /* @__PURE__ */ new Date();
+    postToUpdate.isPublished = post.isPublished ?? false;
+    return this.repository.save(postToUpdate);
   }
   async delete(id) {
     await this.repository.delete(id);

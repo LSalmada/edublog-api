@@ -102,6 +102,13 @@ appDataSource.initialize().then(() => {
   console.error("Error connecting to database with typeorn", error);
 });
 
+// src/use-cases/errors/resource-not-found-error.ts
+var ResourceNotFoundError = class extends Error {
+  constructor() {
+    super("Resource not found");
+  }
+};
+
 // src/repositories/typeorm/posts.repository.ts
 var PostsRepository = class {
   constructor() {
@@ -110,14 +117,23 @@ var PostsRepository = class {
   async create(post) {
     return this.repository.save(post);
   }
-  async findAll(page, limit) {
+  async listAllPosts(page, limit) {
     return this.repository.find({ skip: (page - 1) * limit, take: limit });
   }
   async findById(id) {
     return this.repository.findOne({ where: { id } });
   }
   async update(post) {
-    return this.repository.save(post);
+    const postToUpdate = await this.repository.findOne({ where: { id: post.id } });
+    if (!postToUpdate) {
+      throw new ResourceNotFoundError();
+    }
+    postToUpdate.title = post.title;
+    postToUpdate.content = post.content;
+    postToUpdate.author = post.author;
+    postToUpdate.updatedAt = /* @__PURE__ */ new Date();
+    postToUpdate.isPublished = post.isPublished ?? false;
+    return this.repository.save(postToUpdate);
   }
   async delete(id) {
     await this.repository.delete(id);
@@ -155,9 +171,84 @@ async function create(request, reply) {
   return reply.status(201).send(post);
 }
 
+// src/http/controllers/posts/update.ts
+var import_zod3 = require("zod");
+
+// src/use-cases/update-post.ts
+var UpdatePostUseCase = class {
+  constructor(postsRepository) {
+    this.postsRepository = postsRepository;
+  }
+  async handler(post) {
+    return this.postsRepository.update(post);
+  }
+};
+
+// src/use-cases/factory/make-update-post-use-case.ts
+function makeUpdatePostUseCase() {
+  const postsRepository = new PostsRepository();
+  const updatePostUseCase = new UpdatePostUseCase(postsRepository);
+  return updatePostUseCase;
+}
+
+// src/http/controllers/posts/update.ts
+async function update(request, reply) {
+  const paramsSchema = import_zod3.z.object({
+    id: import_zod3.z.coerce.number()
+  });
+  const updateBodySchema = import_zod3.z.object({
+    title: import_zod3.z.string(),
+    content: import_zod3.z.string(),
+    author: import_zod3.z.string()
+  });
+  const { id } = paramsSchema.parse(request.params);
+  const { title, content, author } = updateBodySchema.parse(request.body);
+  const updatePostUseCase = makeUpdatePostUseCase();
+  const post = await updatePostUseCase.handler({
+    id,
+    title,
+    content,
+    author,
+    updatedAt: /* @__PURE__ */ new Date()
+  });
+  return reply.status(200).send(post);
+}
+
+// src/use-cases/list-all-posts.ts
+var ListAllPostsUseCase = class {
+  constructor(postsRepository) {
+    this.postsRepository = postsRepository;
+  }
+  async handler(page, limit) {
+    return this.postsRepository.listAllPosts(page, limit);
+  }
+};
+
+// src/use-cases/factory/make-list-all-posts-use-case.ts
+function makeListAllPostsUseCase() {
+  const postsRepository = new PostsRepository();
+  const listAllPostsUseCase = new ListAllPostsUseCase(postsRepository);
+  return listAllPostsUseCase;
+}
+
+// src/http/controllers/posts/list-all-posts.ts
+var import_zod4 = require("zod");
+async function listAllPosts(request, reply) {
+  const listAllPostsQuerySchema = import_zod4.z.object({
+    page: import_zod4.z.coerce.number().default(1),
+    limit: import_zod4.z.coerce.number().default(10)
+  });
+  const { page, limit } = listAllPostsQuerySchema.parse(request.query);
+  const listAllPostsUseCase = makeListAllPostsUseCase();
+  const posts = await listAllPostsUseCase.handler(page, limit);
+  return reply.status(200).send(posts);
+}
+
 // src/http/controllers/posts/routes.ts
 async function postRoutes(app) {
   app.post("/posts", create);
+  app.put("/posts/:id", update);
+  app.get("/posts", listAllPosts);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

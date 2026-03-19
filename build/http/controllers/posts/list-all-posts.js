@@ -26,12 +26,12 @@ var __decorateClass = (decorators, target, key, kind) => {
   return result;
 };
 
-// src/http/controllers/posts/create.ts
-var create_exports = {};
-__export(create_exports, {
-  create: () => create
+// src/http/controllers/posts/list-all-posts.ts
+var list_all_posts_exports = {};
+__export(list_all_posts_exports, {
+  listAllPosts: () => listAllPosts
 });
-module.exports = __toCommonJS(create_exports);
+module.exports = __toCommonJS(list_all_posts_exports);
 
 // src/entities/post.entity.ts
 var import_typeorm = require("typeorm");
@@ -140,37 +140,36 @@ var PostsRepository = class {
   }
 };
 
-// src/use-cases/create-post.ts
-var CreatePostUseCase = class {
+// src/use-cases/list-all-posts.ts
+var ListAllPostsUseCase = class {
   constructor(postsRepository) {
     this.postsRepository = postsRepository;
   }
-  async handler(post) {
-    return this.postsRepository.create(post);
+  async handler(page, limit) {
+    return this.postsRepository.listAllPosts(page, limit);
   }
 };
 
-// src/use-cases/factory/make-create-post-use-case.ts
-function makeCreatePostUseCase() {
+// src/use-cases/factory/make-list-all-posts-use-case.ts
+function makeListAllPostsUseCase() {
   const postsRepository = new PostsRepository();
-  const createPostUseCase = new CreatePostUseCase(postsRepository);
-  return createPostUseCase;
+  const listAllPostsUseCase = new ListAllPostsUseCase(postsRepository);
+  return listAllPostsUseCase;
 }
 
-// src/http/controllers/posts/create.ts
+// src/http/controllers/posts/list-all-posts.ts
 var import_zod2 = require("zod");
-async function create(request, reply) {
-  const registerBodySchema = import_zod2.z.object({
-    title: import_zod2.z.string(),
-    content: import_zod2.z.string(),
-    author: import_zod2.z.string()
+async function listAllPosts(request, reply) {
+  const listAllPostsQuerySchema = import_zod2.z.object({
+    page: import_zod2.z.coerce.number().default(1),
+    limit: import_zod2.z.coerce.number().default(10)
   });
-  const { title, content, author } = registerBodySchema.parse(request.body);
-  const createPostUseCase = makeCreatePostUseCase();
-  const post = await createPostUseCase.handler({ title, content, author });
-  return reply.status(201).send(post);
+  const { page, limit } = listAllPostsQuerySchema.parse(request.query);
+  const listAllPostsUseCase = makeListAllPostsUseCase();
+  const posts = await listAllPostsUseCase.handler(page, limit);
+  return reply.status(200).send(posts);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  create
+  listAllPosts
 });

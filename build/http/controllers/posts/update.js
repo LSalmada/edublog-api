@@ -26,12 +26,13 @@ var __decorateClass = (decorators, target, key, kind) => {
   return result;
 };
 
-// src/http/controllers/posts/create.ts
-var create_exports = {};
-__export(create_exports, {
-  create: () => create
+// src/http/controllers/posts/update.ts
+var update_exports = {};
+__export(update_exports, {
+  update: () => update
 });
-module.exports = __toCommonJS(create_exports);
+module.exports = __toCommonJS(update_exports);
+var import_zod2 = require("zod");
 
 // src/entities/post.entity.ts
 var import_typeorm = require("typeorm");
@@ -140,37 +141,46 @@ var PostsRepository = class {
   }
 };
 
-// src/use-cases/create-post.ts
-var CreatePostUseCase = class {
+// src/use-cases/update-post.ts
+var UpdatePostUseCase = class {
   constructor(postsRepository) {
     this.postsRepository = postsRepository;
   }
   async handler(post) {
-    return this.postsRepository.create(post);
+    return this.postsRepository.update(post);
   }
 };
 
-// src/use-cases/factory/make-create-post-use-case.ts
-function makeCreatePostUseCase() {
+// src/use-cases/factory/make-update-post-use-case.ts
+function makeUpdatePostUseCase() {
   const postsRepository = new PostsRepository();
-  const createPostUseCase = new CreatePostUseCase(postsRepository);
-  return createPostUseCase;
+  const updatePostUseCase = new UpdatePostUseCase(postsRepository);
+  return updatePostUseCase;
 }
 
-// src/http/controllers/posts/create.ts
-var import_zod2 = require("zod");
-async function create(request, reply) {
-  const registerBodySchema = import_zod2.z.object({
+// src/http/controllers/posts/update.ts
+async function update(request, reply) {
+  const paramsSchema = import_zod2.z.object({
+    id: import_zod2.z.coerce.number()
+  });
+  const updateBodySchema = import_zod2.z.object({
     title: import_zod2.z.string(),
     content: import_zod2.z.string(),
     author: import_zod2.z.string()
   });
-  const { title, content, author } = registerBodySchema.parse(request.body);
-  const createPostUseCase = makeCreatePostUseCase();
-  const post = await createPostUseCase.handler({ title, content, author });
-  return reply.status(201).send(post);
+  const { id } = paramsSchema.parse(request.params);
+  const { title, content, author } = updateBodySchema.parse(request.body);
+  const updatePostUseCase = makeUpdatePostUseCase();
+  const post = await updatePostUseCase.handler({
+    id,
+    title,
+    content,
+    author,
+    updatedAt: /* @__PURE__ */ new Date()
+  });
+  return reply.status(200).send(post);
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  create
+  update
 });

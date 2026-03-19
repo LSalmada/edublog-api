@@ -16,7 +16,7 @@ export class PostsRepository implements IPostsRepository {
     return this.repository.save(post)
   }
 
-  async findAll(page: number, limit: number): Promise<IPost[]> {
+  async listAllPosts(page: number, limit: number): Promise<IPost[]> {
     return this.repository.find({ skip: (page - 1) * limit, take: limit })
   }
 
