@@ -2,8 +2,7 @@ import { Post } from '@/entities/post.entity'
 import { IPostsRepository } from '../posts.repository.interface'
 import { appDataSource } from '@/lib/typeorm/typeorm'
 import { IPost } from '@/entities/models/post.interface'
-import { Repository } from 'typeorm'
-import { ResourceNotFoundError } from '@/use-cases/errors/resource-not-found-error'
+import { ILike, Repository } from 'typeorm'
 
 export class PostsRepository implements IPostsRepository {
   private repository: Repository<Post>
@@ -30,5 +29,11 @@ export class PostsRepository implements IPostsRepository {
 
   async delete(id: number): Promise<void> {
     await this.repository.delete(id)
+  }
+
+  async search(query: string): Promise<IPost[]> {
+    return this.repository.find({
+      where: [{ title: ILike(`%${query}%`) }, { content: ILike(`%${query}%`) }],
+    })
   }
 }

@@ -6,4 +6,5 @@ export interface IPostsRepository {
   findById(id: number): Promise<IPost | null>
   update(post: IPost): Promise<IPost>
   delete(id: number): Promise<void>
+  search(query: string): Promise<IPost[]>
 }
