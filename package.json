@@ -8,7 +8,8 @@
     "build": "tsup src --out-dir build",
     "migration:generate": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:generate -d src/lib/typeorm/typeorm.ts",
     "migration:run": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:run -d src/lib/typeorm/typeorm.ts",
-    "migration:revert": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:revert -d src/lib/typeorm/typeorm.ts"
+    "migration:revert": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:revert -d src/lib/typeorm/typeorm.ts",
+    "seed": "tsx src/lib/typeorm/seed.ts"
   },
   "keywords": [],
   "author": "",
