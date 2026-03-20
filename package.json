@@ -9,7 +9,9 @@
     "migration:generate": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:generate -d src/lib/typeorm/typeorm.ts",
     "migration:run": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:run -d src/lib/typeorm/typeorm.ts",
     "migration:revert": "node -r tsx/cjs ./node_modules/typeorm/cli.js migration:revert -d src/lib/typeorm/typeorm.ts",
-    "seed": "tsx src/lib/typeorm/seed.ts"
+    "seed": "tsx src/lib/typeorm/seed.ts",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +37,13 @@
     "tsup": "8.0.2",
     "tsx": "4.7.2",
     "typescript": "5.4.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
+    }
   },
   "dependencies": {
     "dotenv": "17.3.1",
