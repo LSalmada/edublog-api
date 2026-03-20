@@ -1,3 +1,4 @@
+import { join } from 'path'
 import { DataSource } from 'typeorm'
 import { env } from '@/env'
 import { Post } from '@/entities/post.entity'
@@ -10,7 +11,7 @@ export const appDataSource = new DataSource({
   password: env.DATABASE_PASSWORD,
   database: env.DATABASE_NAME,
   entities: [Post],
-  migrations: ['src/lib/typeorm/migrations/*.ts'],
+  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
   logging: env.NODE_ENV === 'development',
 })
 
