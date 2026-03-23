@@ -58,8 +58,6 @@ describe('UpdatePostUseCase', () => {
   })
 
   it('should throw when updating a post that does not exist', async () => {
-    await expect(
-      sut.handler({ id: 999, title: 'Ghost', content: 'None', author: 'Eve' }),
-    ).rejects.toThrow()
+    await expect(sut.handler({ id: 999, title: 'Ghost', content: 'None', author: 'Eve' })).rejects.toThrow()
   })
 })

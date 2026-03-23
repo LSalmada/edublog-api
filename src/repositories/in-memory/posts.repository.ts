@@ -40,10 +40,6 @@ export class InMemoryPostsRepository implements IPostsRepository {
 
   async search(query: string): Promise<IPost[]> {
     const lower = query.toLowerCase()
-    return this.posts.filter(
-      (p) =>
-        p.title.toLowerCase().includes(lower) ||
-        p.content.toLowerCase().includes(lower),
-    )
+    return this.posts.filter((p) => p.title.toLowerCase().includes(lower) || p.content.toLowerCase().includes(lower))
   }
 }
