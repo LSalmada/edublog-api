@@ -38,81 +38,105 @@ const postBodySchema = {
 } as const
 
 export async function postRoutes(app: FastifyInstance) {
-  app.post('/posts', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'Create a new post',
-      body: postBodySchema,
-      response: {
-        201: postSchema,
-      },
-    },
-  }, create)
-
-  app.put('/posts/:id', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'Update a post by ID',
-      params: idParamSchema,
-      body: postBodySchema,
-      response: {
-        200: postSchema,
-      },
-    },
-  }, update)
-
-  app.get('/posts', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'List all posts',
-      response: {
-        200: {
-          type: 'array',
-          items: postSchema,
+  app.post(
+    '/posts',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Create a new post',
+        body: postBodySchema,
+        response: {
+          201: postSchema,
         },
       },
     },
-  }, listAllPosts)
+    create,
+  )
 
-  app.get('/posts/:id', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'Get a post by ID',
-      params: idParamSchema,
-      response: {
-        200: postSchema,
-      },
-    },
-  }, findById)
-
-  app.delete('/posts/:id', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'Delete a post by ID',
-      params: idParamSchema,
-      response: {
-        204: { type: 'null', description: 'Post deleted successfully' },
-      },
-    },
-  }, destroy)
-
-  app.get('/posts/search', {
-    schema: {
-      tags: ['Posts'],
-      summary: 'Search posts by query',
-      querystring: {
-        type: 'object',
-        required: ['query'],
-        properties: {
-          query: { type: 'string' },
-        },
-      },
-      response: {
-        200: {
-          type: 'array',
-          items: postSchema,
+  app.put(
+    '/posts/:id',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Update a post by ID',
+        params: idParamSchema,
+        body: postBodySchema,
+        response: {
+          200: postSchema,
         },
       },
     },
-  }, search)
+    update,
+  )
+
+  app.get(
+    '/posts',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'List all posts',
+        response: {
+          200: {
+            type: 'array',
+            items: postSchema,
+          },
+        },
+      },
+    },
+    listAllPosts,
+  )
+
+  app.get(
+    '/posts/:id',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Get a post by ID',
+        params: idParamSchema,
+        response: {
+          200: postSchema,
+        },
+      },
+    },
+    findById,
+  )
+
+  app.delete(
+    '/posts/:id',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Delete a post by ID',
+        params: idParamSchema,
+        response: {
+          204: { type: 'null', description: 'Post deleted successfully' },
+        },
+      },
+    },
+    destroy,
+  )
+
+  app.get(
+    '/posts/search',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Search posts by query',
+        querystring: {
+          type: 'object',
+          required: ['query'],
+          properties: {
+            query: { type: 'string' },
+          },
+        },
+        response: {
+          200: {
+            type: 'array',
+            items: postSchema,
+          },
+        },
+      },
+    },
+    search,
+  )
 }
