@@ -10,3 +10,7 @@ docker run -d \
   -v edublog_pgdata:/var/lib/postgresql/data \
   postgres:16
 ```
+
+### Docker Hub Image
+
+https://hub.docker.com/r/lucasalmada/edublog-api
