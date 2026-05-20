@@ -17,9 +17,10 @@ export class InMemoryPostsRepository implements IPostsRepository {
     return newPost
   }
 
-  async listAllPosts(page: number, limit: number): Promise<IPost[]> {
+  async listAllPosts(page: number, limit: number, onlyPublished = false): Promise<IPost[]> {
     const offset = (page - 1) * limit
-    return this.posts.slice(offset, offset + limit)
+    const source = onlyPublished ? this.posts.filter((p) => p.isPublished) : this.posts
+    return source.slice(offset, offset + limit)
   }
 
   async findById(id: number): Promise<IPost | null> {
@@ -38,8 +39,9 @@ export class InMemoryPostsRepository implements IPostsRepository {
     this.posts = this.posts.filter((p) => p.id !== id)
   }
 
-  async search(query: string): Promise<IPost[]> {
+  async search(query: string, onlyPublished = false): Promise<IPost[]> {
     const lower = query.toLowerCase()
-    return this.posts.filter((p) => p.title.toLowerCase().includes(lower) || p.content.toLowerCase().includes(lower))
+    const source = onlyPublished ? this.posts.filter((p) => p.isPublished) : this.posts
+    return source.filter((p) => p.title.toLowerCase().includes(lower) || p.content.toLowerCase().includes(lower))
   }
 }

@@ -8,13 +8,14 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
   })
 
   const updateBodySchema = z.object({
-    title: z.string(),
-    content: z.string(),
-    author: z.string(),
+    title: z.string().min(1),
+    content: z.string().min(1),
+    author: z.string().min(1),
+    isPublished: z.boolean().optional(),
   })
 
   const { id } = paramsSchema.parse(request.params)
-  const { title, content, author } = updateBodySchema.parse(request.body)
+  const { title, content, author, isPublished } = updateBodySchema.parse(request.body)
 
   const updatePostUseCase = makeUpdatePostUseCase()
   const post = await updatePostUseCase.handler({
@@ -22,6 +23,7 @@ export async function update(request: FastifyRequest, reply: FastifyReply) {
     title,
     content,
     author,
+    isPublished,
     updatedAt: new Date(),
   })
 

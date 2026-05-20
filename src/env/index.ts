@@ -10,6 +10,8 @@ const envSchema = z.object({
   DATABASE_NAME: z.string(),
   DATABASE_HOST: z.string(),
   DATABASE_PORT: z.coerce.number(),
+  JWT_SECRET: z.string().default('change-me-in-production'),
+  CORS_ORIGIN: z.string().default('*'),
 })
 
 const _env = envSchema.safeParse(process.env)

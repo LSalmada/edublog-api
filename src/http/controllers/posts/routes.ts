@@ -1,10 +1,11 @@
 import { FastifyInstance } from 'fastify'
 import { create } from './create'
 import { update } from './update'
-import { listAllPosts } from './list-all-posts'
+import { listAllPosts, listAllPostsAdmin } from './list-all-posts'
 import { findById } from './find-by-id'
 import { destroy } from './destroy'
-import { search } from './search'
+import { search, searchAdmin } from './search'
+import { verifyJwt } from '@/http/plugins/jwt'
 
 const postSchema = {
   type: 'object',
@@ -34,56 +35,45 @@ const postBodySchema = {
     title: { type: 'string' },
     content: { type: 'string' },
     author: { type: 'string' },
+    isPublished: { type: 'boolean' },
   },
 } as const
 
+const postsListSchema = {
+  type: 'array',
+  items: postSchema,
+} as const
+
+const searchQuerystring = {
+  type: 'object',
+  required: ['query'],
+  properties: { query: { type: 'string' } },
+} as const
+
 export async function postRoutes(app: FastifyInstance) {
-  app.post(
-    '/posts',
-    {
-      schema: {
-        tags: ['Posts'],
-        summary: 'Create a new post',
-        body: postBodySchema,
-        response: {
-          201: postSchema,
-        },
-      },
-    },
-    create,
-  )
-
-  app.put(
-    '/posts/:id',
-    {
-      schema: {
-        tags: ['Posts'],
-        summary: 'Update a post by ID',
-        params: idParamSchema,
-        body: postBodySchema,
-        response: {
-          200: postSchema,
-        },
-      },
-    },
-    update,
-  )
-
   app.get(
     '/posts',
     {
       schema: {
         tags: ['Posts'],
-        summary: 'List all posts',
-        response: {
-          200: {
-            type: 'array',
-            items: postSchema,
-          },
-        },
+        summary: 'List published posts (public)',
+        response: { 200: postsListSchema },
       },
     },
     listAllPosts,
+  )
+
+  app.get(
+    '/posts/search',
+    {
+      schema: {
+        tags: ['Posts'],
+        summary: 'Search published posts (public)',
+        querystring: searchQuerystring,
+        response: { 200: postsListSchema },
+      },
+    },
+    search,
   )
 
   app.get(
@@ -93,20 +83,80 @@ export async function postRoutes(app: FastifyInstance) {
         tags: ['Posts'],
         summary: 'Get a post by ID',
         params: idParamSchema,
-        response: {
-          200: postSchema,
-        },
+        response: { 200: postSchema },
       },
     },
     findById,
   )
 
+  app.get(
+    '/admin/posts',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Admin'],
+        summary: 'List all posts including drafts (protected)',
+        security: [{ bearerAuth: [] }],
+        response: { 200: postsListSchema },
+      },
+    },
+    listAllPostsAdmin,
+  )
+
+  app.get(
+    '/admin/posts/search',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Admin'],
+        summary: 'Search all posts including drafts (protected)',
+        security: [{ bearerAuth: [] }],
+        querystring: searchQuerystring,
+        response: { 200: postsListSchema },
+      },
+    },
+    searchAdmin,
+  )
+
+  app.post(
+    '/posts',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Posts'],
+        summary: 'Create a new post (protected)',
+        security: [{ bearerAuth: [] }],
+        body: postBodySchema,
+        response: { 201: postSchema },
+      },
+    },
+    create,
+  )
+
+  app.put(
+    '/posts/:id',
+    {
+      onRequest: [verifyJwt],
+      schema: {
+        tags: ['Posts'],
+        summary: 'Update a post by ID (protected)',
+        security: [{ bearerAuth: [] }],
+        params: idParamSchema,
+        body: postBodySchema,
+        response: { 200: postSchema },
+      },
+    },
+    update,
+  )
+
   app.delete(
     '/posts/:id',
     {
+      onRequest: [verifyJwt],
       schema: {
         tags: ['Posts'],
-        summary: 'Delete a post by ID',
+        summary: 'Delete a post by ID (protected)',
+        security: [{ bearerAuth: [] }],
         params: idParamSchema,
         response: {
           204: { type: 'null', description: 'Post deleted successfully' },
@@ -114,29 +164,5 @@ export async function postRoutes(app: FastifyInstance) {
       },
     },
     destroy,
-  )
-
-  app.get(
-    '/posts/search',
-    {
-      schema: {
-        tags: ['Posts'],
-        summary: 'Search posts by query',
-        querystring: {
-          type: 'object',
-          required: ['query'],
-          properties: {
-            query: { type: 'string' },
-          },
-        },
-        response: {
-          200: {
-            type: 'array',
-            items: postSchema,
-          },
-        },
-      },
-    },
-    search,
   )
 }

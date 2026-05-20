@@ -5,6 +5,9 @@ export class CreatePostUseCase {
   constructor(private postsRepository: IPostsRepository) {}
 
   async handler(post: IPost): Promise<IPost> {
-    return this.postsRepository.create(post)
+    return this.postsRepository.create({
+      ...post,
+      isPublished: post.isPublished ?? false,
+    })
   }
 }
